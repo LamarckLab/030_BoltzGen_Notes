@@ -89,7 +89,7 @@ entities:
             id: A
             binding: 59..62       # 必须结合到 A 链 59-62 号残基
 ```
-命令的形式和 01 完全一样
+命令的形式和 01 完全一样，换成带 `binding_types` 的 yaml、输出到对应目录
 ```bash
 CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=2 \
 boltzgen run /data/lmk/boltzgen_inputs/1g13prot_site.yaml \
@@ -102,5 +102,43 @@ boltzgen run /data/lmk/boltzgen_inputs/1g13prot_site.yaml \
 > `binding:` 结合位点，`not_binding:` 禁止结合区，可同时用；值支持逗号 `343,344,251`、范围 `57..71`、整链 `"all"`
 > ⚠️ 编号是 mmCIF 的 `label_seq_id`（从 1 顺序数），**不是** PDB 中的 `auth_seq_id`，即和 ProteinMPNN `--position_list` 中编号方式类似
 > ⚠️ 是**软引导**不是硬约束：模型被鼓励往那贴，多数命中但不保证每个都完美
+
+> **03 裁剪靶点**
+
+在 02 的基础上加一个 `include_proximity` 块，只保留结合位点附近的残基（在 yaml 中定义距离）、丢掉靶点链的其余部分。通常靶点动辄几百上千残基，但 binder 只结合一小块，裁剪能大幅降低 folding 所用算力与显存
+
+设计规范 `1g13prot_crop.yaml`
+```yaml
+entities:
+  - protein:
+      id: C
+      sequence: 80..140
+  - file:
+      path: 1g13.cif
+      include:
+        - chain:
+            id: A
+      include_proximity:          # 裁剪：只留靶点氨基酸附近残基
+        - chain:
+            id: A
+            res_index: 59..62     # 参照区域（通常就用结合位点）
+            radius: 15            # 保留距参照 <15 埃的残基（本例 162→30）
+      binding_types:
+        - chain:
+            id: A
+            binding: 59..62
+```
+命令的形式和 01 完全一样，换成带 `include_proximity` 的 yaml、输出到对应目录
+```bash
+CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=2 \
+boltzgen run /data/lmk/boltzgen_inputs/1g13prot_crop.yaml \
+  --output /data/lmk/boltzgen_outputs/1g13prot_crop \
+  --protocol protein-anything \
+  --num_designs 25 \
+  --budget 5 \
+  --cache /data/lmk/boltzgen_downloads
+```
+> 裁出来的是**空间口袋**不是序列区间：残基编号会**稀疏跳号**（如 `54..67, 130..139, 156..160`），序列上远、空间上近的残基被拼在一起
+> ⚠️ 稀疏编号的 cif **ChimeraX 打不开**（IndexError），用 [molstar](https://molstar.org/viewer/) 看
 
 ##### [BoltzGen 官方仓库](https://github.com/HannesStark/boltzgen)

@@ -1,0 +1,18 @@
+entities:
+  - protein:
+      id: C
+      sequence: 80..140
+  - file:
+      path: 1g13.cif
+      include:
+        - chain:
+            id: A
+      include_proximity:          # 裁剪靶点：只留结合位点周围一圈
+        - chain:
+            id: A
+            res_index: 59..62     # 参照区域（这里就用结合位点）
+            radius: 15            # 保留 CA 距参照 <15A 的残基（162→30）
+      binding_types:
+        - chain:
+            id: A
+            binding: 59..62
