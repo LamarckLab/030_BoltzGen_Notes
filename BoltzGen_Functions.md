@@ -200,11 +200,11 @@ boltzgen run /data/lmk/boltzgen_inputs/1g13prot_hide.yaml \
 
 > 被设计的残基 visibility 必须为 0（源码硬约束）
 
-> **04-2 结构可见性：刚体分组**
+> **04-2 结构可见性：自动对接**
 
 用 `visibility: 2` 把一部分结构划成**独立刚体组**：组内结构完整保留，但它与组 1 之间的相对位置不给模型——等于让模型**自己做 docking**。只有一条链时 `2` 和 `1` 无差别，必须有两块带结构的实体才显现
 
-设计规范 `AB_rigid.yaml`（1g13 的 A、B 两条链在晶体中紧密接触，界面在 A 的 34/36/99-102/117-120 位置）
+设计规范 `AB_docking.yaml`（1g13 的 A、B 两条链在晶体中紧密接触，界面在 A 的 34/36/99-102/117-120 位置）
 ```yaml
 entities:
   - protein:
@@ -231,8 +231,8 @@ entities:
 ```
 ```bash
 CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=2 \
-boltzgen run /data/lmk/boltzgen_inputs/AB_rigid.yaml \
-  --output /data/lmk/boltzgen_outputs/AB_rigid \
+boltzgen run /data/lmk/boltzgen_inputs/AB_docking.yaml \
+  --output /data/lmk/boltzgen_outputs/AB_docking \
   --protocol protein-anything \
   --num_designs 10 \
   --budget 2 \
