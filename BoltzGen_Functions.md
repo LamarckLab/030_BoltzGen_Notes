@@ -29,10 +29,8 @@ boltzgen check /data/lmk/boltzgen_inputs/1g13prot.yaml \
   --output /data/lmk/boltzgen_outputs/1g13prot \
   --cache /data/lmk/boltzgen_downloads
 ```
-> `--output` 可省略（省略则只校验、不出图）
-
-> `--cache` 指向权重目录，否则会重新下载 `mols.zip`
-
+> `--output` 可省略（省略则只校验、不出图）  
+> `--cache` 指向权重目录，否则会重新下载 `mols.zip`  
 > 输出子目录用 yaml 的文件名
 
 check 的真正价值不只是"格式检查"——它最重要的是能抓**意图错误**：yaml 完全合法、run 也不报错，但含义定义错误（典型是结合位点编号写错、指到了另一块表面）。这类错误打开染色之后的 cif 看一眼才能发现，check 让你在烧几小时 GPU 之前就发现，打开上色 cif 只会看到靶点那条链，靶点残基会被标红，其余为蓝色
@@ -68,14 +66,10 @@ boltzgen run /data/lmk/boltzgen_inputs/1g13prot.yaml \
   --budget 5 \
   --cache /data/lmk/boltzgen_downloads
 ```
-> `--protocol protein-anything` 用蛋白结合蛋白
-
-> `--num_designs` 候选数（真实任务 10,000–60,000）
-
-> `--budget` 最终精选数
-
-> 最终结果在 `final_ranked_designs/`
-
+> `--protocol protein-anything` 用蛋白结合蛋白  
+> `--num_designs` 候选数（真实任务 10,000–60,000）  
+> `--budget` 最终精选数  
+> 最终结果在 `final_ranked_designs/`  
 > 输出 cif 里的链名会被重排，和 yaml 中定义的不一样，记得检查
 
 **六步流水线**：design（扩散模型生成骨架，只有主链、没有序列）→ inverse_folding（给骨架设计氨基酸序列）→ folding（用 Boltz-2 把「设计序列 + 靶点」重新折叠，回测设计是否自洽）→ design_folding（binder 单独折叠，看离开靶点还成不成型）→ analysis（算指标）→ filtering（排序 + 去冗余，选出 budget 个）。本质是「生成 → 回测」闭环，等价于把 RFdiffusion → ProteinMPNN → AF2 那条老流水线打包进一个工具
@@ -115,10 +109,8 @@ boltzgen run /data/lmk/boltzgen_inputs/1g13prot_site.yaml \
   --budget 5 \
   --cache /data/lmk/boltzgen_downloads
 ```
-> `binding:` 结合位点，`not_binding:` 禁止结合区，可同时用；值支持逗号 `343,344,251`、范围 `57..71`、整链 `"all"`
-
-> 编号是 mmCIF 的 `label_seq_id`（从 1 顺序数），**不是** PDB 中的 `auth_seq_id`，即和 ProteinMPNN `--position_list` 中编号方式类似
-
+> `binding:` 结合位点，`not_binding:` 禁止结合区，可同时用；值支持逗号 `343,344,251`、范围 `57..71`、整链 `"all"`  
+> 编号是 mmCIF 的 `label_seq_id`（从 1 顺序数），**不是** PDB 中的 `auth_seq_id`，即和 ProteinMPNN `--position_list` 中编号方式类似  
 > 是**软引导**不是硬约束：模型被鼓励往那贴，多数命中但不保证每个都完美
 
 > **03 裁剪靶点（不知道生产中是否真的有用 ? 存疑 ?）**
@@ -202,12 +194,9 @@ boltzgen run /data/lmk/boltzgen_inputs/1g13prot_hide.yaml \
   --budget 5 \
   --cache /data/lmk/boltzgen_downloads
 ```
-> `0` 结构不给（与谁都不可见）
-
-> `1` 默认组，组内相对位置全可见（不写 `structure_groups` 即全 1）
-
-> `2`（或更大）另一个独立刚体组，组内可见、但与组 1 的相对位置不可见
-
+> `0` 结构不给（与谁都不可见）  
+> `1` 默认组，组内相对位置全可见（不写 `structure_groups` 即全 1）  
+> `2`（或更大）另一个独立刚体组，组内可见、但与组 1 的相对位置不可见  
 > 被设计的残基 visibility 必须为 0（源码硬约束）
 
 > **04-2 结构可见性：自动对接**
@@ -290,10 +279,8 @@ boltzgen run /data/lmk/boltzgen_inputs/1brs_redesign.yaml \
   --budget 5 \
   --cache /data/lmk/boltzgen_downloads
 ```
-> 被 `design` 标记的残基**序列和结构都被清空**——和 04-1 的 `visibility: 0` 不同，后者保留原序列、只是不给结构
-
-> `design` 必须搭配 `visibility: 0`（源码硬约束），所以脚手架 yaml 里这两块总是成对出现
-
+> 被 `design` 标记的残基**序列和结构都被清空**——和 04-1 的 `visibility: 0` 不同，后者保留原序列、只是不给结构  
+> `design` 必须搭配 `visibility: 0`（源码硬约束），所以脚手架 yaml 里这两块总是成对出现  
 > **写了 `structure_groups` 之后，没被显式提到的链默认是 0（隐藏），不是 1**。多链任务里靶点会被悄悄藏起来且不报错——每条要保留结构的链都必须写出 `visibility: 1`
 
 ##### [BoltzGen 官方仓库](https://github.com/HannesStark/boltzgen)
