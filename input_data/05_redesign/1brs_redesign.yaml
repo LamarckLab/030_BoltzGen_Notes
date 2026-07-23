@@ -1,0 +1,24 @@
+# 重设计 barstar(D链) 的界面残基 33-46，barnase(A链) 作靶点保持不变
+entities:
+  - file:
+      path: 1brs.cif
+      include:
+        - chain:
+            id: A             # barnase 靶点，108 aa
+        - chain:
+            id: D             # barstar 结合物，87 aa
+      design:
+        - chain:
+            id: D
+            res_index: 33..46 # 只重设计这 14 个残基（界面核心）
+      structure_groups:
+        - group:
+            id: A
+            visibility: 1     # 必须显式写！写了 structure_groups 后，没提到的链默认是 0（隐藏）
+        - group:
+            id: D
+            visibility: 2     # barstar 其余部分：独立刚体，可自由对接
+        - group:
+            id: D
+            visibility: 0     # 被设计段：结构不给，重新生成
+            res_index: 33..46
